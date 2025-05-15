@@ -1,65 +1,144 @@
 import streamlit as st
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
 
-st.title("Disaster Risk Monitoring Using Satellite Imagery")
-st.write(
-    "In this notebook, you will learn the motivation behind disaster risk monitoring and how to use hardware accelerated tools to process large image data. \n\n"
-    "**Table of Contents**\n"
-    "This notebook covers the below sections: \n"
-    "1. [Disaster Risk Monitoring](#s1-1)\n"
-    "    * [Flood Detection](#s1-1.1) \n"
-    "    * [Satellite Imagery](#s1-1.2)\n"
-    "    * [Computer Vision](#s1-1.3)\n"
-    "    * [Deep Learning-Based Disaster Risk Monitoring Systems](#s1-1.4)\n"
-    "2. [Deep Learning Model Training Workflow](#s1-2)\n"
-    "    * [Deep Learning Challenges](#s1-2.1)\n"
-    "3. [Introducing the Dataset](#s1-3)\n"
-    "    * [Sentinel-1 Data Public Access](#s1-3.1)\n"
-    "    * [Data Annotation](#s1-3.2)\n"
-    "    * [Exploratory Data Analysis](#s1-3.3)\n"
-    "    * [Exercise #1 - Count Input Data](#s1-e1)\n"
-    "    * [Exercise #2 - Explore Tiles](#s1-e2)\n"
-    "4. [Data Pre-processing With DALI](#s1-4)\n"
-    "    * [DALI Pipeline](#s1-4.1)\n"
-    "    * [Data Augmentation](#s1-4.2)\n"
-    "    * [Exercise #3 - Data Augmentation on Batch](#s1-e3)\n"
-    "    * [Random Rotation](#s1-4.3)\n"
-    "## Disaster Risk Monitoring ##\n"
-    "Natural disasters such as flood, wildfire, drought, and severe storms wreak havoc throughout the world, causing billions of dollars in damages, and uprooting communities, ecosystems, and economies. The ability to detect, quantify, and potentially forecast natural disasters can help us minimize their adverse impacts on the economy and human lives. While this lab focuses primarily on detecting flood events, it should be noted that similar applications can be created for other natural disasters. \n"
-    "### Flood Detection ###\n"
-    "[Flooding](https://en.wikipedia.org/wiki/Flood) occurs when there is an overflow of water that submerges land that is usually dry. They can occur under several conditions: \n"
-    "* Overflow of water from water bodies, in which the water overtops or breaks levees (natural or man-made), resulting in some of that water escaping its usual boundaries\n"
-    "* Accumulation of rainwater on saturated ground in an areal flood\n"
-    "* When flow rate exceeds the capacity of the river channel\n"
-    "\n"
-    "Unfortunately, flooding events are on the rise due to climate change and sea level rise. Due to the increase in frequency and intensity, the topic of flood has garnered international attention in the past few years. In fact, organizations such as the [United Nations](https://www.un.org/en/) has maintained effective response and proactive risk assessment for flood in their [Sustainable Development Goals](https://en.wikipedia.org/wiki/Sustainable_Development_Goals). The research of flood events and their evolution is an interdisciplinary study that requires data from a variety of sources such as: \n"
-    "* Live Earth observation data via satellites and surface reflectance\n"
-    "* Precipitation, runoff, soil moisture, snow cover, and snow water equivalent\n"
-    "* Topography and meteorology\n"
-    "\n"
-    "The ability to detect flood and measure the extent of the disaster, can help decision makers develop tactical responses and scientists study flood behavior over time. Ultimately, we want to enable long-term mitigation strategies that are informed by science to help us achieve sustainability. \n"
-    "### Satellite Imagery ###\n"
-    "In this lab, we demonstrate the ability to create a flood detection segmentation model using satellite imagery. Using satellites to study flood is advantageous since physical access to flooded areas is limited and deploying instruments in potential flood zones can be dangerous. Furthermore, satellite remote sensing is much more efficient than manual or human-in-the-loop solutions. \n"
-    "\n"
-    "There are thousands of man-made satellites currently active in space. Once launched, a satellite is often placed in one of several orbits around Earth, depending on what the satellite is designed to achieve. Some satellites, such as those discussed in this lab, are used for Earth observation to help scientists learn about our planet while others could be used for communication or navigation purposes. \n"
-    "\n"
-    "Earth observation satellites have different capabilities that are suited for their unique purposes. To obtain detailed and valuable information for flood monitoring, satellite missions such as [Copernicus Sentinel-1](https://sentinel.esa.int/web/sentinel/missions/sentinel-1), provides C-band [**Synthetic Aperture Radar**](https://en.wikipedia.org/wiki/Synthetic-aperture-radar) (SAR) data. Satellites that use SAR, as opposed to _optical satellites_ that use visible or near-infrared bands, can operate day and night as well as under cloud cover. This form of radar is used to create two-dimensional images or three-dimensional reconstructions of objects, such as landscape. The two polar-orbiting Sentinel-1 satellites (Sentinel-1A and Sentinel-1B) maintain a repeat cycle of just _6_ days in the [Lower Earth Orbit (LEO)](https://en.wikipedia.org/wiki/Low_Earth_orbit). Satellites that orbit close to Earth in the LEO enjoy the benefits of faster orbital speed and data transfer. These features make the Sentinel-1 mission very useful for monitoring flood risk over time. Thus, a real-time AI-based remote flood level estimation via Sentinel-1 data can prove game-changing. \n"
-    "\n"
-    "More information about the Sentinel-1 mission can be found [here](https://directory.eoportal.org/web/eoportal/satellite-missions/c-missions/copernicus-sentinel-1). \n"
-    "### Computer Vision ###\n"
-    "At the heart of this type of disaster risk monitoring system is one or more machine learning models to generate insights from input data. These are generally deep learning neural network models that have been trained for a specific task. There are numerous approaches for drawing insight from images using machine learning such as: \n"
-    "* **Classification** is used for identifying the object contained in an image. It is the task of labeling the given frame with one of the classes that the model has been trained with. \n"
-    "* **Object detection**, which includes image localization, can specify the location of multiple objects in a frame. \n"
-    "    * **Localization** uses regression to return the coordinates of the potential object within the frame. \n"
-    "* **Segmentation** provides pixel level accuracy by creating a fine-grained segmentation mask around the detected object. Applications for segmentation include: an AI-powered green screen to blur or change the background of the frame, autonomous driving where you want to segment the road and background, or for manufacturing to identify microscopic level defects. \n"
-    "    * **Semantic segmentation** associates every pixel of an image with a class label such as `flood` and `not-flood`. It treats multiple objects of the same class as a single entity. \n"
-    "    * In contrast, **instance segmentation** treats multiple objects of the same class as distinct individual instances. \n"
-    "\n"
-    "\n"
-    "For the purposes of detecting flood events, we will develop a _semantic segmentation_ model trained with labelled images that are generated from Sentinel-1 data. \n"
-    "### Deep Learning-Based Disaster Risk Monitoring System ###\n"
-    "The system that we envision consists of the below workflow: \n"
-    "1. Satellite remote sensors capture data\n"
-    "2. Data are used to (continuously) train deep learning neural network models\n"
-    "3. Different models and versions are managed by the model repository\n"
-    "4. Model inference performance is actively monitored\n"
-    "5. Data are passed")
+st.set_page_config(
+    page_title="Disaster Risk Monitoring Systems",
+    page_icon="🛰️",
+    layout="wide"
+)
+
+st.title("Disaster Risk Monitoring Systems and Data Pre-processing")
+
+st.markdown("""
+## Disaster Risk Monitoring
+
+Natural disasters such as floods, wildfires, droughts, and severe storms cause billions in damages 
+and disrupt communities worldwide. Early detection and monitoring systems can help minimize their impact.
+
+### Key Focus Areas:
+
+1. **Flood Detection**
+   - Overflow of water bodies
+   - Accumulation of rainwater
+   - River channel capacity exceedance
+
+2. **Satellite Imagery**
+   - Sentinel-1 SAR data
+   - Day/night operation capability
+   - Cloud cover penetration
+   - 6-day repeat cycle
+
+3. **Computer Vision Applications**
+   - Classification
+   - Object detection
+   - Semantic segmentation
+   - Instance segmentation
+""")
+
+# Create sample data for visualization
+np.random.seed(42)
+dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='M')
+disaster_types = ['Flood', 'Wildfire', 'Drought', 'Storm']
+data = []
+
+for disaster in disaster_types:
+    incidents = np.random.normal(loc=100, scale=20, size=len(dates))
+    incidents = np.abs(incidents)  # Make all values positive
+    for date, count in zip(dates, incidents):
+        data.append({
+            'Date': date,
+            'Disaster_Type': disaster,
+            'Incident_Count': count
+        })
+
+df = pd.DataFrame(data)
+
+# Plot disaster incidents
+st.header("Disaster Incidents Over Time")
+
+fig = go.Figure()
+for disaster in disaster_types:
+    disaster_data = df[df['Disaster_Type'] == disaster]
+    fig.add_trace(go.Scatter(
+        x=disaster_data['Date'],
+        y=disaster_data['Incident_Count'],
+        name=disaster,
+        mode='lines+markers'
+    ))
+
+fig.update_layout(
+    xaxis_title='Date',
+    yaxis_title='Number of Incidents',
+    hovermode='x unified'
+)
+st.plotly_chart(fig, use_container_width=True)
+
+# Data Processing Pipeline
+st.header("Data Processing Pipeline")
+
+st.markdown("""
+### Satellite Data Processing
+
+The processing pipeline consists of several key steps:
+
+1. **Data Collection**
+   - Sentinel-1 SAR imagery
+   - Ground truth data
+   - Historical records
+
+2. **Pre-processing**
+   - Radiometric calibration
+   - Speckle filtering
+   - Terrain correction
+
+3. **Data Augmentation**
+   - Rotation
+   - Flipping
+   - Scaling
+   - Noise addition
+""")
+
+# Create columns for key metrics
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric("Satellite Coverage", "250,000 km²/day")
+col2.metric("Resolution", "10 meters")
+col3.metric("Revisit Time", "6 days")
+col4.metric("Data Volume", "1.5 TB/day")
+
+# DALI Pipeline
+st.header("DALI Pipeline")
+
+st.markdown("""
+### NVIDIA DALI
+
+DALI (Data Loading Library) is a collection of highly optimized building blocks for data pre-processing:
+
+- GPU-accelerated data loading and augmentation
+- Seamless integration with deep learning frameworks
+- Support for various data formats and transformations
+- Optimized memory handling and transfer
+""")
+
+# Add interactive elements
+st.sidebar.header("Data Processing Parameters")
+
+# Image processing parameters
+image_size = st.sidebar.slider("Image Size", 128, 1024, 512, 128)
+batch_size = st.sidebar.selectbox("Batch Size", [1, 2, 4, 8, 16, 32])
+augmentation = st.sidebar.multiselect(
+    "Augmentation Techniques",
+    ["Rotation", "Flip", "Scale", "Noise", "Blur"],
+    ["Rotation", "Flip"]
+)
+
+# Processing options
+processing_device = st.sidebar.radio("Processing Device", ["GPU", "CPU"])
+num_workers = st.sidebar.slider("Number of Workers", 1, 8, 4)
+
+st.sidebar.markdown("""
+**Note**: These parameters affect the data processing pipeline.
+Adjust based on your available computational resources and requirements.
+""")
