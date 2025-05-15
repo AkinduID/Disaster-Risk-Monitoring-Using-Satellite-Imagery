@@ -7,7 +7,7 @@ def setup_tao_environment(api_key: str) -> None:
     """Setup TAO environment with NGC API key."""
     # Create config dictionary
     config_dict = {
-        'apikey': api_key,
+        'apikey': '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',
         'format_type': 'json',
         'org': 'nvidia'
     }
