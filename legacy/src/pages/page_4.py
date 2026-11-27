@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 import os
-from utils.data_utils import visualize_samples
+from legacy.src.utils.data_utils import visualize_samples
 
 st.set_page_config(
     page_title="UNOSAT Flood Event Case Study",

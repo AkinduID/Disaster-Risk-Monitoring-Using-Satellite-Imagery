@@ -1,7 +1,7 @@
 import streamlit as st
 import os
-from utils.tao_utils import export_model, generate_tensorrt_engine
-from utils.data_utils import visualize_predictions
+from legacy.src.utils.tao_utils import export_model, generate_tensorrt_engine
+from legacy.src.utils.data_utils import visualize_predictions
 
 st.set_page_config(
     page_title="Model Deployment for Inference",

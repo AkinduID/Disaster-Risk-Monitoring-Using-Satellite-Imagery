@@ -1,8 +1,8 @@
 import streamlit as st
 import os
 import json
-from utils.tao_utils import setup_tao_environment, create_tao_config, run_tao_command
-from utils.data_utils import split_dataset, visualize_samples
+from legacy.src.utils.tao_utils import setup_tao_environment, create_tao_config, run_tao_command
+from legacy.src.utils.data_utils import split_dataset, visualize_samples
 
 st.set_page_config(
     page_title="Efficient Model Training",
