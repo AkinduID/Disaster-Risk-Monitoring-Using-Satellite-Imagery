@@ -7,7 +7,11 @@ authors = [
     { name = "AkinduID", email = "akinduid@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi[standard]>=0.165.0",
+    "numpy>=2.5.5",
+    "pillow>=13.0.0",
+]
 
 [project.scripts]
 backend = "backend:main"
@@ -15,3 +19,9 @@ backend = "backend:main"
 [build-system]
 requires = ["uv_build>=0.13.10,<0.14.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.6",
+]
